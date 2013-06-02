@@ -1,0 +1,46 @@
+﻿<#+
+public static class TrackableEntitiesConfig 
+{
+    public static string CompanyName { get; set; }
+
+    /// <summary>Gets or sets the AppName property.</summary>
+    public static string AppName { get; set; }
+    
+    /// <summary>Gets or sets the AppVersion property.</summary>
+    public static string AppVersion { get; set; }
+
+    /// <summary>Gets or sets the Folder property.</summary>
+    public static string Folder { get; set; }
+    
+    /// <summary>Gets or sets the Name property.</summary>
+    public static string Name { get; set; }
+
+    /// <summary>Gets or sets the Namespace property.</summary>
+    public static string Namespace { get; set; }
+
+    /// <summary>Gets or sets the ModelNamespace property.</summary>
+    public static string ModelNamespace { get; set; }
+
+    /// <summary>Gets or sets the ContextNamespace property.</summary>
+    public static string ContextNamespace { get; set; }
+
+    public static string RootNamespace { get; set; }
+
+    public static string TrackableEntitiesNamespace { get; set; }
+
+    public static string DomainModelNamespace { get; set; }
+
+    public static string EntitiesNamespace { get; set; }
+}
+#>
+<#+
+//From
+//http://stackoverflow.com/questions/9668140/add-view-model-class-dropdown-not-showing-my-class
+//
+private void DefineMetadata()
+{
+    TemplateMetadata[MetadataConstants.TT_TEMPLATE_NAME] = "CSharpDbContext.Types";
+    TemplateMetadata[MetadataConstants.TT_TEMPLATE_VERSION] = "5.0";
+    TemplateMetadata[MetadataConstants.TT_MINIMUM_ENTITY_FRAMEWORK_VERSION] = "5.0";
+}
+#>

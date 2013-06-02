@@ -1,0 +1,126 @@
+﻿<#+
+// <copyright file="TrackableEntitiesTemplate.tt" company="">
+//  Copyright © . All Rights Reserved.
+// </copyright>
+
+/// <summary>
+/// T4 Toolbox compatible Template.
+/// </summary>
+public class TrackableEntitiesTemplate : T4TemplateBase
+{
+    private string  currentNamespace;
+    public MetadataContext Context ;
+
+    public override string TransformText()
+    {
+        base.TransformText();
+        code = Context.Code;
+        currentNamespace  = this.GetNamespace(TrackableEntitiesConfig.TrackableEntitiesNamespace, TrackableEntitiesConfig.RootNamespace );
+        var es = Context.Container.BaseEntitySets.OfType<EntitySet>().Where( eb=>eb.ElementType.Name == this.OutputName ).FirstOrDefault(); 
+        var name = es.ElementType.Name;
+        var properties = es.ElementType.Properties.OrderBy(c => c.Name).OrderBy(p => es.ElementType.KeyMembers.Contains(p) == false).ToArray();
+        var collectionNavigations = es.ElementType.NavigationProperties.Where(np => np.ToEndMember.RelationshipMultiplicity == RelationshipMultiplicity.Many);
+        //Don't know what the np.DeclaringType == EntityType clause is for, so left out.
+        //var collectionNavigations = es.ElementType.NavigationProperties.Where( np => np.DeclaringType == EntityType && np.ToEndMember.RelationshipMultiplicity == RelationshipMultiplicity.Many);
+        var version = Context.Version;
+#>
+namespace <#= code.EscapeNamespace(currentNamespace) #>
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Runtime.Serialization;
+    using Newtonsoft.Json;
+    using TrackableEntities.Client;
+
+    [JsonObject(IsReference = true)]
+    [DataContract(IsReference = true, Namespace = "http://schemas.datacontract.org/2004/07/TrackableEntities.Models")]
+    public partial class <#= this.OutputName #> : ModelBase<<#= this.OutputName #>>
+    {
+        public <#= code.Escape(this.OutputName) #>()
+        {
+        <#+
+        foreach (var navProperty in collectionNavigations)
+        {
+        #>
+    this.<#= code.Escape(navProperty) #> = new ChangeTrackingCollection<<#= code.Escape(navProperty.ToEndMember.GetEntityType()) #>>();
+        <#+
+        }
+        #>
+}//ctor
+
+<#+
+    foreach (var property in properties)
+    {
+         var typeUsage = code.Escape(property.TypeUsage);
+
+        // Fix-up spatial types for EF6
+        if (version >= new Version(6, 0)  && typeUsage.StartsWith("System.Data.Spatial."))
+        {
+            typeUsage = typeUsage.Replace( "System.Data.Spatial.", "System.Data.Entity.Spatial.");
+        }
+#>
+        [DataMember]
+        <#= Accessibility.ForProperty(property) #> <#= code.Escape(property.TypeUsage) #> <#= code.Escape(property) #>
+        { 
+            get { return _<#= code.Escape(property) #>; }
+            set
+            {
+                if (value == _<#= code.Escape(property) #>) return;
+                _<#= code.Escape(property) #> = value;
+                NotifyPropertyChanged(m => m.<#= code.Escape(property) #>);
+            }
+        }
+        private <#= typeUsage #> _<#= code.Escape(property) #>;
+
+<#+
+    }
+
+    var navigationproperties = es.ElementType.NavigationProperties;
+    foreach (var navProperty in navigationproperties)
+    {
+        if(navProperty.ToEndMember.RelationshipMultiplicity == RelationshipMultiplicity.Many)
+        {
+#>
+        [DataMember]
+        public ChangeTrackingCollection<<#= code.Escape(navProperty.ToEndMember.GetEntityType()) #>> <#= code.Escape(navProperty) #>
+        {
+            get { return _<#= code.Escape(navProperty) #>; }
+            set
+            {
+                if (Equals(value, _<#= code.Escape(navProperty) #>)) return;
+                _<#= code.Escape(navProperty) #> = value;
+                NotifyPropertyChanged(m => m.<#= code.Escape(navProperty) #>);
+            }
+        }
+        private ChangeTrackingCollection<<#= code.Escape(navProperty.ToEndMember.GetEntityType()) #>> _<#= code.Escape(navProperty) #>;
+
+<#+
+        }
+        else
+        {
+#>
+        [DataMember]
+        public <#= code.Escape(navProperty.ToEndMember.GetEntityType()) #> <#= code.Escape(navProperty) #>
+        {
+            get { return _<#= code.Escape(navProperty) #>; }
+            set
+            {
+                if (value == _<#= code.Escape(navProperty) #>) return;
+                _<#= code.Escape(navProperty) #> = value;
+                NotifyPropertyChanged(m => m.<#= code.Escape(navProperty) #>);
+            }
+        }
+        private <#= code.Escape(navProperty.ToEndMember.GetEntityType()) #> _<#= code.Escape(navProperty) #>;
+
+<#+
+        }
+    }
+#>
+
+    } //Class
+} //Namespace
+<#+
+        return this.GenerationEnvironment.ToString();
+    }
+}
+#>
