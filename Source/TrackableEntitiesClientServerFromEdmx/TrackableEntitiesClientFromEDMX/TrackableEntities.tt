@@ -25,11 +25,6 @@
     // -- T4 Templates do not transform on solution opening nor on
     // -- build. Use "Run Custom Tool".
     //
-    // -- NOTE: "MyEF.Utility.CS.ttinclude" has a small modification
-    // -- to allow Accessibility.CalculatePropertyAccessibility() to be
-    // -- made public. "TrackableEntitiesHelpers.ttinclude" does have a 
-    // -- local version but it is currently not used.
-    //
     // -- NOTE: This version of TrackableEntities does not require
     // -- the EFPowerTools.
     //

@@ -3,6 +3,16 @@ Trackable-Entities-From-EDMX
 
 Trackable Entities From EDMX based on https://trackable.codeplex.com, but uses an EDMX file as the source.
 
+Version 1.0.0.1 2013-06-06
+Use the folder "TrackableEntitiesClientServerFromEdmx"
+Now has both Client and Server side templates.
+The Domain Model project has been removed.
+The Model EDMX is now in the TrackableEntitiesServerFromEdmx project.
+Notice that TrackableEntitiesClientFromEdmx has no reference to EntityFramework, and neither project references each other.
+But as yet, no tests.
+Have fun!
+
+
 To Build:
 You will need my revised version of the T4 Toolbox. You will need to download and build this, and then load the VSIX if you
 want to run the T4 Template, but I have included the current VSIX in the Libraries folder for your convenience.
