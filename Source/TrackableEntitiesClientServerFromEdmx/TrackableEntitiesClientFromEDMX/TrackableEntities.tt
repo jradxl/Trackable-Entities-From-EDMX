@@ -1,0 +1,60 @@
+<#@ template language="C#" debug="true" hostspecific="true" #>
+<#@ output extension="txt"#>
+<#@ include file="TrackableEntitiesIncludes.ttinclude" #>
+<#@ TransformationContext processor="T4Toolbox10R.TransformationContextProcessor" #>
+<#
+    // ****************************************************************
+    //<copyright file="TrackableEntities.tt" company="jsrsoft">
+    //  Copyright © John S. Radley. All Rights Reserved.
+    //</copyright>
+    // ****************************************************************
+    // -- https://github.com/jradxl/TrackableEntitiesFromEDMX
+    // ****************************************************************  
+    // 
+    // References and Credits
+    // Based on with thanks
+    //(1) https://t4toolbox.codeplex.com/
+    //(2) https://ef4templates.codeplex.com/
+    //(3) https://trackable.codeplex.com/
+    //(4) https://t4csla.codeplex.com/
+    //
+    // -- NOTE: Requires a revised verion of the T4 Toolbox 
+    // -- https://github.com/jradxl/T4Toolbox-V10-Revised
+    // -- Only for VS2012, created because the proper one
+    // -- has a bug preventing use of debugging. With this version
+    // -- T4 Templates do not transform on solution opening nor on
+    // -- build. Use "Run Custom Tool".
+    //
+    // -- NOTE: "MyEF.Utility.CS.ttinclude" has a small modification
+    // -- to allow Accessibility.CalculatePropertyAccessibility() to be
+    // -- made public. "TrackableEntitiesHelpers.ttinclude" does have a 
+    // -- local version but it is currently not used.
+    //
+    // -- NOTE: This version of TrackableEntities does not require
+    // -- the EFPowerTools.
+    //
+    // -- NOTE: The warning for Assuming assembly reference needs resolution.
+    //
+    // -- PLEASE edit for your own config requirements
+    //
+    // ****************************************************************
+    //
+
+    TrackableEntitiesConfig.AppName = "TrackableEntities";
+    TrackableEntitiesConfig.AppVersion = "1.0.0.0";
+    TrackableEntitiesConfig.CompanyName = "jsrsoft.co.uk";
+    TrackableEntitiesConfig.RootNamespace = "TrackableEntitiesDTO";
+    TrackableEntitiesConfig.EntitiesNamespace = "ClientEntities";
+
+    DefineMetadata();
+
+    //The template file location is used here to provide the relative path to the
+    //Domain project containing the EDMX file.
+    var templateFile = this.Host.TemplateFile;
+    templateFile = System.IO.Path.GetDirectoryName(templateFile);
+    // C:\VSProjects\VS2012\TrackableEntities\TrackableEntitiesClientServerFromEdmx\TrackableEntitiesServerFromEDMX\Model1.edmx
+    templateFile = System.IO.Path.Combine(templateFile, @"..\TrackableEntitiesServerFromEDMX\Model1.edmx");
+
+    var gen = new TrackableEntitiesGenerator(this, templateFile);
+    gen.Run();
+#>

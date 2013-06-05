@@ -1,0 +1,105 @@
+﻿<#+
+// <copyright file="TrackableEntitiesTemplate.tt" company="">
+//  Copyright © . All Rights Reserved.
+// </copyright>
+
+/// <summary>
+/// T4 Toolbox compatible Template.
+/// </summary>
+public class TrackableEntitiesServerTemplate : T4TemplateBase
+{
+    private string  currentNamespace;
+    private MetadataContext _ctx;
+
+    public MetadataContext Context { get; set; }
+    
+    public override string TransformText()
+    {
+        base.TransformText();
+        _ctx = Context;
+        code = _ctx.Code;
+        currentNamespace  = this.GetNamespace(TrackableEntitiesConfig.EntitiesNamespace, TrackableEntitiesConfig.RootNamespace );
+        var es = _ctx.Container.BaseEntitySets.OfType<EntitySet>().Where( eb=>eb.ElementType.Name == this.OutputName ).FirstOrDefault(); 
+        var name = es.ElementType.Name;
+        var properties = es.ElementType.Properties.OrderBy(c => c.Name).OrderBy(p => es.ElementType.KeyMembers.Contains(p) == false).ToArray();
+
+        var collectionNavigations = es.ElementType.NavigationProperties.Where(np => np.ToEndMember.RelationshipMultiplicity == RelationshipMultiplicity.Many);
+        //Original had np.DeclaringType == efHost.EntityType, because EntityType was a property containing the Entity being processed.
+        //var collectionNavigations = es.ElementType.NavigationProperties.Where( np => np.DeclaringType == EntityType && np.ToEndMember.RelationshipMultiplicity == RelationshipMultiplicity.Many);
+        var version = _ctx.Version;
+#>
+namespace <#= code.EscapeNamespace(currentNamespace) #>
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Runtime.Serialization;
+    using Newtonsoft.Json;
+    using TrackableEntities;
+
+    [JsonObject(IsReference = true)]
+    [DataContract(IsReference = true, Namespace = "http://schemas.datacontract.org/2004/07/TrackableEntities.Models")]
+    public partial class <#= this.OutputName #> : ITrackable
+    {
+        public <#= code.Escape(this.OutputName) #>()
+        {
+        <#+
+        foreach (var navProperty in collectionNavigations)
+        {
+        #>
+    this.<#= code.Escape(navProperty) #> = new List<<#= code.Escape(navProperty.ToEndMember.GetEntityType()) #>>();
+        <#+
+        }
+        #>
+}//ctor
+
+<#+
+    foreach (var property in properties)
+    {
+         var typeUsage = code.Escape(property.TypeUsage);
+
+        // Fix-up spatial types for EF6
+        if (version >= new Version(6, 0)  && typeUsage.StartsWith("System.Data.Spatial."))
+        {
+            typeUsage = typeUsage.Replace( "System.Data.Spatial.", "System.Data.Entity.Spatial.");
+        }
+#>
+        [DataMember]
+        <#= Accessibility.ForProperty(property) #> <#= code.Escape(property.TypeUsage) #> <#= code.Escape(property) #>  { get; set; }
+
+<#+
+    }
+
+    var navigationproperties = es.ElementType.NavigationProperties;
+    foreach (var navProperty in navigationproperties)
+    {
+        if(navProperty.ToEndMember.RelationshipMultiplicity == RelationshipMultiplicity.Many)
+        {
+#>
+        [DataMember]
+        public ICollection<<#= code.Escape(navProperty.ToEndMember.GetEntityType()) #>> <#= code.Escape(navProperty) #>  { get; set; }
+
+<#+
+        }
+        else
+        {
+#>
+        [DataMember]
+        public <#= code.Escape(navProperty.ToEndMember.GetEntityType()) #> <#= code.Escape(navProperty) #> { get; set; }
+
+<#+
+        }
+    }
+#>
+        [DataMember]
+        public TrackingState TrackingState { get; set; }
+
+        [DataMember]
+        public ICollection<string> ModifiedProperties { get; set; }
+
+    } //Class
+} //Namespace
+<#+
+        return this.GenerationEnvironment.ToString();
+    }
+}
+#>

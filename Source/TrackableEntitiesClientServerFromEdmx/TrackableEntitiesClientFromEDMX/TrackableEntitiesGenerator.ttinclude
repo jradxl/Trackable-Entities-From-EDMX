@@ -1,0 +1,96 @@
+﻿<#+
+// <copyright file="Generator1.tt" company="">
+//  Copyright © . All Rights Reserved.
+// </copyright>
+
+/// <summary>
+/// T4 Toolbox compatible Generator.
+/// </summary>
+public class TrackableEntitiesGenerator : Generator
+{
+    private MetadataContext _ctx;
+
+    public TrackableEntitiesGenerator(GeneratedTextTransformation gtt, string modelfilename )
+    {
+        _ctx = MetadataContext.Create(gtt, modelfilename);
+    }
+
+    protected override void RunCore()
+    {
+        foreach (EntitySet table in _ctx.Container.BaseEntitySets.OfType<EntitySet>().OrderBy(e => e.Name))
+        {
+            var template = new TrackableEntitiesTemplate();
+            template.Context = _ctx;
+            template.OutputName = table.ElementType.Name;
+            template.RenderToFile(table.ElementType.Name + ".cs");
+        }
+    }
+}
+#>
+<#+
+/// <summary>
+/// MetadataContext - a class to hold all EDMX info convenienty for passing to Templates.
+/// </summary>
+public class MetadataContext
+{
+    public string InputFileName { get; private set; }
+    public CodeGenerationTools Code { get; private set; }
+    public MetadataLoader Loader { get; private set; }
+    public CodeRegion Region { get; private set; }
+    public MetadataTools Tools { get; private set; }
+    public EdmItemCollection ItemCollection { get; private set; }
+    public EntityContainer Container { get; private set; }
+    public Version Version { get; private set; }
+    public XElement Schema { get; private set; }
+    
+    public static MetadataContext Create(GeneratedTextTransformation gtt, string inputFileName) 
+    {
+        MetadataContext ctx = new MetadataContext();
+        ctx.InputFileName = inputFileName;
+        ctx.Code = new CodeGenerationTools(gtt);
+        ctx.Loader = new MetadataLoader(gtt);
+        ctx.Region = new CodeRegion(gtt, 1);
+        ctx.Tools = new MetadataTools(gtt);
+        ctx.ItemCollection = ctx.Loader.CreateEdmItemCollection(ctx.InputFileName);
+        ctx.Container = ctx.ItemCollection.GetItems<EntityContainer>()[0];
+        ctx.Schema = EDMXchema.GetSchemaElement(ctx.InputFileName);
+        //This Get Method may not be reliable, as there is a DLL version warning concerning envDTE.
+        ctx.Version = envDTEHelper.GetEntityFrameworkVersion(gtt.Host);
+        return ctx;
+    }
+}
+#>
+<#+
+public static class EDMXchema
+{
+    /// <summary>
+    /// It returns root element of conceptual model (edmx file).
+    /// Not present in EF.Utility.CS.ttinclude, so recreated here. There is probably a better way!
+    /// </summary>
+    /// <param name="sourcePath"></param>
+    /// <returns></returns>
+    public static XElement GetSchemaElement(string sourcePath)
+    {
+
+        if (String.IsNullOrEmpty(sourcePath))
+        {
+            throw new ArgumentException("sourcePath");
+        }
+
+       //ToDo!
+       // if(sourcePath == string.Format("{0}{1}", "$edmx", "InputFile$"))
+       //{
+       //     _textTransformation.Errors.Add(new CompilerError(_textTransformation.Host.TemplateFile ?? "Currently Running Template", 0, 0, "",
+       //         "Please overwrite the replacement token '" + string.Format("{0}{1}", "$edmx", "InputFile$") + "' with the actual name of the .edmx file you would like to generate from."));
+       //     return null;
+       // }
+
+        //string edmxNS = @"http://schemas.microsoft.com/ado/2008/10/edmx";
+        string edmxNS = @"http://schemas.microsoft.com/ado/2009/11/edmx";
+        XElement root = XElement.Load(sourcePath);
+        XElement csdl = root.Descendants(XName.Get("ConceptualModels", edmxNS)).FirstOrDefault();
+            
+        return csdl;
+    }	
+}
+#>

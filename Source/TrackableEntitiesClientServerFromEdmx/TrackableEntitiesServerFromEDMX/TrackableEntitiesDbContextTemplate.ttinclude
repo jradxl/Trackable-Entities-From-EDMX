@@ -1,0 +1,75 @@
+﻿<#+
+// <copyright file="TrackableEntitiesDbContextTemplate.tt" company="">
+//  Copyright © . All Rights Reserved.
+// </copyright>
+
+/// <summary>
+/// T4 Toolbox compatible Template.
+/// </summary>
+public class TrackableEntitiesDbContextTemplate : T4TemplateBase
+{
+    private string  currentNamespace = TrackableEntitiesConfig.RootNamespace ;
+    private string  mappingNamespace;
+    private string  entitiesNamespace;
+    private MetadataContext _ctx;
+
+    public MetadataContext Context { get; set; }
+    
+    public override string TransformText()
+    {
+        base.TransformText();
+        _ctx = Context;
+        code = _ctx.Code;
+        mappingNamespace = this.GetNamespace(TrackableEntitiesConfig.MappingNamespace, TrackableEntitiesConfig.RootNamespace);
+        entitiesNamespace = this.GetNamespace(TrackableEntitiesConfig.EntitiesNamespace, TrackableEntitiesConfig.RootNamespace);
+        var container = _ctx.Container;
+        var version = _ctx.Version;
+#>
+namespace <#= code.EscapeNamespace(currentNamespace) #>
+{
+    using System;
+    using System.Data.Entity;
+    using <#= code.EscapeNamespace(entitiesNamespace) #>;
+    using <#= code.EscapeNamespace(mappingNamespace) #>;
+
+    public partial class <#= container.Name #> : DbContext
+    {
+        static <#= container.Name #>()
+        {
+            Database.SetInitializer<<#= container.Name #>>(null);
+        }
+
+        public <#= container.Name #>() : base("Name=<#= container.Name #>")
+        {
+            this.Configuration.LazyLoadingEnabled = false;
+            this.Configuration.ProxyCreationEnabled = false;
+        }
+
+<#+
+    foreach (var set in container.BaseEntitySets.OfType<EntitySet>())
+    {
+#>
+         public DbSet<<#= set.ElementType.Name #>> <#= set.Name #> { get; set; }
+<#+
+    }
+#>
+ 
+        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        {
+<#+
+    foreach (var set in container.BaseEntitySets.OfType<EntitySet>())
+    {
+#>
+            modelBuilder.Configurations.Add(new <#= set.ElementType.Name #>Map());
+<#+
+    }
+#>
+        }
+
+    } //Class
+} //Namespace
+<#+
+        return this.GenerationEnvironment.ToString();
+    }
+}
+#>

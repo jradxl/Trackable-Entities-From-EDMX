@@ -1,0 +1,189 @@
+﻿<#+
+public static class envDTEHelper
+{
+    public static Version GetEntityFrameworkVersion(object host)
+    {
+        IServiceProvider serviceProvider = (IServiceProvider) host;
+        EnvDTE.DTE dte = (EnvDTE.DTE) serviceProvider.GetService(typeof(EnvDTE.DTE));
+        if (dte == null)
+        {
+            throw new ArgumentNullException("Could not obtain DTE from host");
+        }
+
+        var projects = dte.Solution.Projects;
+        foreach(var project in projects)
+        {
+            VSLangProj.VSProject vsproject =  (project as EnvDTE.Project).Object as VSLangProj.VSProject;
+            if (vsproject != null)
+            {               
+                var refs = vsproject.References.Cast<VSLangProj.Reference>();
+                foreach (var r in refs)
+                {
+                    var n = r.Name;
+                    if( n == "EntityFramework" )
+                    {
+                        var v = new Version(r.Version);
+                        return v;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    public static string GetCurrentProjectUniqueName(object host)
+    {
+        IServiceProvider serviceProvider = (IServiceProvider) host;
+        EnvDTE.DTE dte = (EnvDTE.DTE) serviceProvider.GetService(typeof(EnvDTE.DTE));
+        if (dte == null)
+        {
+            throw new ArgumentNullException("Could not obtain DTE from host");
+        }
+
+        System.Array projs = (System.Array) dte.ActiveSolutionProjects;
+        if(projs.Length > 0 )
+        {
+            EnvDTE.Project  proj = (EnvDTE.Project) projs.GetValue(0);
+            return System.IO.Path.GetDirectoryName(proj.UniqueName);
+        }
+        return string.Empty;
+    }
+
+    public static string GetCurrentProjectFullName(object host)
+    {
+        IServiceProvider serviceProvider = (IServiceProvider) host;
+        EnvDTE.DTE dte = (EnvDTE.DTE) serviceProvider.GetService(typeof(EnvDTE.DTE));
+        if (dte == null)
+        {
+            throw new ArgumentNullException("Could not obtain DTE from host");
+        }
+
+        System.Array projs = (System.Array) dte.ActiveSolutionProjects;
+        if(projs.Length > 0 )
+        {
+            EnvDTE.Project  proj = (EnvDTE.Project) projs.GetValue(0);
+            return proj.FullName;
+        }
+        return string.Empty;
+    }
+}
+
+
+/// <summary>
+/// Responsible for encapsulating the retrieval and translation of the CodeGeneration
+/// annotations in the EntityFramework Metadata to a form that is useful in code generation.
+/// CalculatePropertyAccessibility(...) is not available from EF.Utility.CS.ttinclude
+/// for public use, so recreated from original code in CslaExtension.tt
+/// </summary>
+/*
+public static class MyAccessibility
+{
+    private const string GETTER_ACCESS = "http://schemas.microsoft.com/ado/2006/04/codegeneration:GetterAccess";
+    private const string SETTER_ACCESS = "http://schemas.microsoft.com/ado/2006/04/codegeneration:SetterAccess";
+    private const string TYPE_ACCESS = "http://schemas.microsoft.com/ado/2006/04/codegeneration:TypeAccess";
+    private const string METHOD_ACCESS = "http://schemas.microsoft.com/ado/2006/04/codegeneration:MethodAccess";
+    private const string ACCESS_PROTECTED = "Protected";
+    private const string ACCESS_INTERNAL = "Internal";
+    private const string ACCESS_PRIVATE = "Private";
+
+    private static readonly Dictionary<string, int> AccessibilityRankIdLookup = new Dictionary<string, int>
+    {
+        { "private", 1},
+        { "internal", 2},
+        { "protected", 3},
+        { "public", 4},
+    };
+
+    public static void CalculatePropertyAccessibility(MetadataItem item,
+        out string propertyAccessibility,
+        out string getterAccessibility,
+        out string setterAccessibility)
+    {
+        getterAccessibility = GetAccessibility(item, GETTER_ACCESS);
+        int getterRank = AccessibilityRankIdLookup[getterAccessibility];
+
+        setterAccessibility = GetAccessibility(item, SETTER_ACCESS);
+        int setterRank = AccessibilityRankIdLookup[setterAccessibility];
+
+        int propertyRank = Math.Max(getterRank, setterRank);
+        if (setterRank == propertyRank)
+        {
+            setterAccessibility = String.Empty;
+        }
+
+        if (getterRank == propertyRank)
+        {
+            getterAccessibility = String.Empty;
+        }
+
+        propertyAccessibility = AccessibilityRankIdLookup.Where(v => v.Value == propertyRank).Select(v => v.Key).Single();
+    }
+
+        private static string GetAccessibility(MetadataItem item, string name)
+    {
+        string accessibility;
+        if (MetadataTools.TryGetStringMetadataPropertySetting(item, name, out accessibility))
+        {
+            return TranslateUserAccessibilityToCSharpAccessibility(accessibility);
+        }
+
+        return "public";
+    }
+
+        private static string TranslateUserAccessibilityToCSharpAccessibility(string userAccessibility)
+    {
+        if (userAccessibility == ACCESS_PROTECTED)
+        {
+            return "protected";
+        }
+        else if (userAccessibility == ACCESS_INTERNAL)
+        {
+            return "internal";
+        }
+        else if (userAccessibility == ACCESS_PRIVATE)
+        {
+            return "private";
+        }
+        else
+        {
+            // default to public
+            return "public";
+        }
+    }
+}
+*/
+
+public static class EdmxSchema
+{
+    /// <summary>
+    /// It returns root element of conceptual model (edmx file).
+    /// No now present in EF.Utility.CS.ttinclude, so recreated. There is probably a better way!
+    /// </summary>
+    /// <param name="sourcePath"></param>
+    /// <returns></returns>
+    public static XElement GetSchemaElement(string sourcePath)
+    {
+
+        if (String.IsNullOrEmpty(sourcePath))
+        {
+            throw new ArgumentException("sourcePath");
+        }
+
+       //JSR ToDo!
+       // if(sourcePath == string.Format("{0}{1}", "$edmx", "InputFile$"))
+       //{
+       //     _textTransformation.Errors.Add(new CompilerError(_textTransformation.Host.TemplateFile ?? "Currently Running Template", 0, 0, "",
+       //         "Please overwrite the replacement token '" + string.Format("{0}{1}", "$edmx", "InputFile$") + "' with the actual name of the .edmx file you would like to generate from."));
+       //     return null;
+       // }
+
+        //string edmxNS = @"http://schemas.microsoft.com/ado/2008/10/edmx";
+        string edmxNS = @"http://schemas.microsoft.com/ado/2009/11/edmx";
+        XElement root = XElement.Load(sourcePath);
+        XElement csdl = root.Descendants(XName.Get("ConceptualModels", edmxNS)).FirstOrDefault();
+            
+        return csdl;
+    }	
+}
+
+#>

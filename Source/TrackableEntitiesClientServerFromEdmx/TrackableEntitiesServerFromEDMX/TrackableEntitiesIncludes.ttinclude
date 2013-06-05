@@ -1,0 +1,44 @@
+﻿<#@ assembly name="System" #>
+<#@ assembly name="System.Linq" #>
+<#@ assembly name="System.Xml" #>
+<#@ assembly name="System.Xml.Linq"#>
+<#@ assembly name="System.Data" #>
+<#@ assembly name="System.Data.Entity" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="EnvDTE80" #>
+<#@ assembly name="VSLangProj" #>
+<#@ assembly name="VSLangProj2" #>
+<#@ assembly name="VSLangProj80" #>
+<#@ assembly name="C:\Program Files (x86)\Microsoft Visual Studio 11.0\Common7\IDE\Microsoft.Data.Entity.Design.DatabaseGeneration.dll"#>
+
+<#@ import namespace="Microsoft.Data.Entity.Design.DatabaseGeneration" #>
+<#@ import namespace="T4Toolbox" #>
+
+<#@ import namespace="System.CodeDom" #>
+<#@ import namespace="System.Globalization" #>
+<#@ import namespace="System" #>
+<#@ import namespace="System.ComponentModel" #>
+<#@ import namespace="System.Collections" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Collections.ObjectModel" #>
+<#@ import namespace="System.Data.Metadata.Edm"#>
+<#@ import namespace="System.Data.Mapping"#>
+<#@ import namespace="System.Diagnostics" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Xml" #>
+<#@ import namespace="System.Xml.Linq" #>
+<#@ import namespace="Microsoft.VisualStudio.TextTemplating" #>
+<#@ import namespace="Microsoft.CSharp" #>
+
+
+<#@ include file="TrackableEntitiesConfig.ttinclude" #>
+<#@ include file="EF.Utility.CS.ttinclude" #>
+<#@ include file="EF5DbContextFluentLibrary.ttinclude" #>
+<#@ include file="T4TemplateBase.ttinclude" #>
+<#@ include file="TrackableEntitiesHelpers.ttinclude" #>
+<#@ include file="TrackableEntitiesServerGenerator.ttinclude" #>
+<#@ include file="TrackableEntitiesServerTemplate.ttinclude" #>
+<#@ include file="TrackableEntitiesMappingTemplate.ttinclude" #>
+<#@ include file="TrackableEntitiesDbContextTemplate.ttinclude" #>
